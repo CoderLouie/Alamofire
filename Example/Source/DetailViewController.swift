@@ -97,6 +97,8 @@ class DetailViewController: UITableViewController {
                 }
             }
 
+            print(result.value ?? "NO MORE DATA")
+            
             self.tableView.reloadData()
             self.refreshControl?.endRefreshing()
         }
@@ -153,6 +155,7 @@ extension DetailViewController {
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        
         switch Sections(rawValue: (indexPath as NSIndexPath).section)! {
         case .headers:
             let cell = tableView.dequeueReusableCell(withIdentifier: "Header")!
@@ -193,7 +196,7 @@ extension DetailViewController {
     }
 
     override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        switch Sections(rawValue: (indexPath as NSIndexPath).section)! {
+        switch Sections(rawValue: indexPath.section)! {
         case .body:
             return 300
         default:

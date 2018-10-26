@@ -147,6 +147,8 @@ extension DataRequest {
         -> Self
     {
         delegate.queue.addOperation {
+            
+            /// 调用闭包
             let result = responseSerializer.serializeResponse(
                 self.request,
                 self.response,

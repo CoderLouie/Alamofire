@@ -22,6 +22,31 @@
 //  THE SOFTWARE.
 //
 
+
+// MARK: - 访问权限
+
+/*
+ open和public修饰的实体可以被模块内的任何文件访问，也可以被导入了这个模块的另一个模块的文件使用。当我们定义框架的公开接口时，通常使用open或者pubilc。
+ 
+     public修饰的class，或被其他更严格的访问级别修饰，这个class只能在当前模块内被继承。
+     open修饰的class，能在当前模块内被继承，也可以在导入了这个模块的另一个模块内被继承。
+     public修饰的class成员，或被其他更严格的访问级别修饰，这些成员只能被当前模块内的子类重写。
+     open修饰的class成员，能被当前模块内的子类重写，也可以被导入了这个模块的另一个模块内的子类重写。
+ 
+ internal修饰的实体可以被模块内的任何文件访问，模块之外的其他文件不能访问。当定义应用或者模块内的结构时，通常使用internal。（默认访问权限）
+ fileprivate修饰的实体可以在这个文件内被访问。当实现细节只在文件内使用时，通常使用fileprivate对其他文件隐藏实现细节。
+ private修饰的实体只能被实体所在的声明内部访问。当实现细节只在声明内部使用时，使用private。
+ 
+ Swift的访问级别遵循一个总的原则：一个实体不能定义在访问权限比它更低的实体里面。例如：
+ 
+ 一个public变量不能定义在internal、fileprivate或者private修饰的类型中。
+ 一个方法的访问权限不能高于他们参数和返回值类型
+ 
+ 类型的访问权限为private或者fileprivate，那么他的成员的默认权限是private或者fileprivate；如果类型的权限是internal或者public，那么他的成员的默认权限是internal。如果想让成员的权限也是public，我们必须明确写出。
+ 
+ 多元组的访问权限是以多元组内元素访问权限最低的为准
+ */
+
 import Foundation
 
 /// Types adopting the `URLConvertible` protocol can be used to construct URLs, which are then used to construct
@@ -128,7 +153,7 @@ extension URLRequest {
 /// - parameter headers:    The HTTP headers. `nil` by default.
 ///
 /// - returns: The created `DataRequest`.
-@discardableResult
+@discardableResult// 表示取消不使用返回值的警告
 public func request(
     _ url: URLConvertible,
     method: HTTPMethod = .get,

@@ -148,7 +148,7 @@ open class SessionManager {
     ///
     /// `nil` by default.
     open var backgroundCompletionHandler: (() -> Void)?
-
+    
     let queue = DispatchQueue(label: "org.alamofire.session-manager." + UUID().uuidString)
 
     // MARK: - Lifecycle
@@ -255,9 +255,19 @@ open class SessionManager {
 
         do {
             originalRequest = try urlRequest.asURLRequest()
+            
+            /// 创建遵循`TaskConvertible`协议的`Requestable`结构体
             let originalTask = DataRequest.Requestable(urlRequest: originalRequest!)
 
+            /// 用`session`创建`URLSessionTask`
+            
             let task = try originalTask.task(session: session, adapter: adapter, queue: queue)
+            /*
+             try originalRequest!.adapt(using: adapter)
+             queue.sync { session.dataTask(with: originalRequest!) }
+             */
+            
+            /// 创建`DataRequest`实例
             let request = DataRequest(session: session, requestTask: .data(originalTask, task))
 
             delegate[task] = request
@@ -849,6 +859,7 @@ open class SessionManager {
             let task = try originalTask.task(session: session, adapter: adapter, queue: queue)
 
             if let originalTask = request.task {
+                /// 清除此次清除，如果满足重试条件，会再赋值
                 delegate[originalTask] = nil // removes the old request to avoid endless growth
             }
 
