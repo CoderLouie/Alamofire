@@ -286,7 +286,7 @@
 
 /* Begin PBXFileReference section */
 		312D1E0B1FC2551400E51FF1 /* Usage.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; name = Usage.md; path = Documentation/Usage.md; sourceTree = "<group>"; };
-		312D1E0C1FC2551400E51FF1 /* AdvancedUsage.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; name = AdvancedUsage.md; path = Documentation/AdvancedUsage.md; sourceTree = "<group>"; };
+		312D1E0C1FC2551400E51FF1 /* AdvancedUsage.md */ = {isa = PBXFileReference; explicitFileType = net.daringfireball.markdown; name = AdvancedUsage.md; path = Documentation/AdvancedUsage.md; sourceTree = "<group>"; };
 		316250E41F00ABE900E207A6 /* ISSUE_TEMPLATE.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; name = ISSUE_TEMPLATE.md; path = .github/ISSUE_TEMPLATE.md; sourceTree = "<group>"; };
 		316250E51F00ACD000E207A6 /* PULL_REQUEST_TEMPLATE.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; name = PULL_REQUEST_TEMPLATE.md; path = .github/PULL_REQUEST_TEMPLATE.md; sourceTree = "<group>"; };
 		31ED52E61D73889D00199085 /* AFError+AlamofireTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "AFError+AlamofireTests.swift"; sourceTree = "<group>"; };
@@ -607,8 +607,8 @@
 				4CDE2C391AF899EC00BABAE5 /* Request.swift */,
 				4C0B62501BB1001C009302D3 /* Response.swift */,
 				4C0E5BF71B673D3400816CCC /* Result.swift */,
-				4CFCFE2D1D56D31700A76388 /* SessionDelegate.swift */,
 				4CDE2C361AF8932A00BABAE5 /* SessionManager.swift */,
+				4CFCFE2D1D56D31700A76388 /* SessionDelegate.swift */,
 				4CFCFE381D56E8D900A76388 /* TaskDelegate.swift */,
 			);
 			name = Core;

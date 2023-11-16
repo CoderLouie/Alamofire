@@ -85,6 +85,9 @@ public struct URLEncoding: ParameterEncoding {
     /// - queryString:     Sets or appends encoded query string result to existing query string.
     /// - httpBody:        Sets encoded query string result as the HTTP body of the URL request.
     public enum Destination {
+        // 根据HTTPMethod自动判断采取哪种编码方式
+        // 拼接到URL中
+        // 拼接到httpBody中
         case methodDependent, queryString, httpBody
     }
 
@@ -174,19 +177,30 @@ public struct URLEncoding: ParameterEncoding {
     public func encode(_ urlRequest: URLRequestConvertible, with parameters: Parameters?) throws -> URLRequest {
         var urlRequest = try urlRequest.asURLRequest()
 
+        /// 如果参数为nil就直接返回urlRequest
         guard let parameters = parameters else { return urlRequest }
 
-        if let method = HTTPMethod(rawValue: urlRequest.httpMethod ?? "GET"), encodesParametersInURL(with: method) {
+        /// 把参数编码到url的情况
+        if let method = HTTPMethod(rawValue: urlRequest.httpMethod ?? "GET"),
+            encodesParametersInURL(with: method)
+        {
+            /// 取出url
             guard let url = urlRequest.url else {
                 throw AFError.parameterEncodingFailed(reason: .missingURL)
             }
 
-            if var urlComponents = URLComponents(url: url, resolvingAgainstBaseURL: false), !parameters.isEmpty {
+            /// 分解url
+            if var urlComponents = URLComponents(url: url, resolvingAgainstBaseURL: false),
+                !parameters.isEmpty {
+                /// 把原有的url中的query百分比编码后在拼接上编码后的参数
                 let percentEncodedQuery = (urlComponents.percentEncodedQuery.map { $0 + "&" } ?? "") + query(parameters)
                 urlComponents.percentEncodedQuery = percentEncodedQuery
                 urlRequest.url = urlComponents.url
             }
-        } else {
+        }
+        else
+        {
+            /// 编码到httpBody的情况
             if urlRequest.value(forHTTPHeaderField: "Content-Type") == nil {
                 urlRequest.setValue("application/x-www-form-urlencoded; charset=utf-8", forHTTPHeaderField: "Content-Type")
             }
@@ -285,6 +299,7 @@ public struct URLEncoding: ParameterEncoding {
         return escaped
     }
 
+    // 把参数处理成字符串
     private func query(_ parameters: [String: Any]) -> String {
         var components: [(String, String)] = []
 
@@ -295,6 +310,7 @@ public struct URLEncoding: ParameterEncoding {
         return components.map { "\($0)=\($1)" }.joined(separator: "&")
     }
 
+    // 判断要不要把参数拼接到URL之中
     private func encodesParametersInURL(with method: HTTPMethod) -> Bool {
         switch destination {
         case .queryString:

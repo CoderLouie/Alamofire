@@ -25,6 +25,10 @@
 import Alamofire
 import UIKit
 
+
+
+
+
 class MasterViewController: UITableViewController {
 
     @IBOutlet weak var titleImageView: UIImageView!
@@ -32,17 +36,40 @@ class MasterViewController: UITableViewController {
     var detailViewController: DetailViewController? = nil
     var objects = NSMutableArray()
 
+    var queue: OperationQueue!
+    
     // MARK: - View Lifecycle
 
     override func awakeFromNib() {
         super.awakeFromNib()
 
         navigationItem.titleView = titleImageView
+        
+        queue = {
+            let operationQueue = OperationQueue()
+            
+            operationQueue.maxConcurrentOperationCount = 1
+            operationQueue.isSuspended = true
+            operationQueue.qualityOfService = .utility
+            
+            return operationQueue
+        }()
     }
 
+    @objc func execute() {
+        queue.isSuspended = false
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
 
+        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Execute", style: .plain, target: self, action: #selector(execute))
+        
+        queue.addOperation {
+            print("viewDidLoad")
+        }
+
+        
         if let split = splitViewController {
             let controllers = split.viewControllers
 
@@ -55,6 +82,22 @@ class MasterViewController: UITableViewController {
         }
     }
 
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        queue.addOperation {
+            print("viewWillAppear")
+        }
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        
+        queue.addOperation {
+            print("viewDidAppear")
+        }
+    }
+    
     // MARK: - UIStoryboardSegue
 
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {

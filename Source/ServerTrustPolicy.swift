@@ -113,8 +113,11 @@ extension URLSession {
 ///
 /// - customEvaluation:         Uses the associated closure to evaluate the validity of the server trust.
 public enum ServerTrustPolicy {
+    /// 默认的策略，只有合法证书才能通过验证
     case performDefaultEvaluation(validateHost: Bool)
+    /// 对注销证书做的一种额外设置
     case performRevokedEvaluation(validateHost: Bool, revocationFlags: CFOptionFlags)
+    /// 验证指定的证书，这里边有一个参数：是否验证证书链
     case pinCertificates(certificates: [SecCertificate], validateCertificateChain: Bool, validateHost: Bool)
     case pinPublicKeys(publicKeys: [SecKey], validateCertificateChain: Bool, validateHost: Bool)
     case disableEvaluation

@@ -87,6 +87,7 @@ open class Request {
     // MARK: Properties
 
     /// The delegate for the underlying task.
+    /// 模块内能设值，模块外只能读取
     open internal(set) var delegate: TaskDelegate {
         get {
             taskDelegateLock.lock() ; defer { taskDelegateLock.unlock() }
@@ -118,6 +119,7 @@ open class Request {
     var startTime: CFAbsoluteTime?
     var endTime: CFAbsoluteTime?
 
+    /// 在`Validation.swift`文件中添加校验block，在`SessionDelegate`代理方法4中依次调用
     var validations: [() -> Void] = []
 
     private var taskDelegate: TaskDelegate
@@ -144,6 +146,11 @@ open class Request {
         }
 
         delegate.error = error
+        
+        //FIXME: `OperationQueue`任务的执行方式
+        /*
+         队列的执行方式是先进先出，`queue`初始化时是挂起的，不会执行队列中的任务，在请求完成，或者，resume失败时才取消挂起，执行任务
+         */
         delegate.queue.addOperation { self.endTime = CFAbsoluteTimeGetCurrent() }
     }
 
@@ -354,7 +361,8 @@ extension Request: CustomDebugStringConvertible {
 
 /// Specific type of `Request` that manages an underlying `URLSessionDataTask`.
 open class DataRequest: Request {
-
+    
+    
     // MARK: Helper Types
 
     struct Requestable: TaskConvertible {

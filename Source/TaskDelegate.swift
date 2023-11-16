@@ -69,6 +69,7 @@ open class TaskDelegate: NSObject {
             let operationQueue = OperationQueue()
 
             operationQueue.maxConcurrentOperationCount = 1
+            // 设置队列为挂起状态，当一系列的operation被添加到队列中后，不会立刻执行，直到isSuspended等于false时才会。
             operationQueue.isSuspended = true
             operationQueue.qualityOfService = .utility
 
@@ -105,6 +106,7 @@ open class TaskDelegate: NSObject {
         completionHandler(redirectRequest)
     }
 
+    /// 处理从`SessionDelegate`转发的代理1
     @objc(URLSession:task:didReceiveChallenge:completionHandler:)
     func urlSession(
         _ session: URLSession,
@@ -146,6 +148,7 @@ open class TaskDelegate: NSObject {
         completionHandler(disposition, credential)
     }
 
+    /// 处理从`SessionDelegate`转发的代理2
     @objc(URLSession:task:needNewBodyStream:)
     func urlSession(
         _ session: URLSession,
@@ -161,6 +164,7 @@ open class TaskDelegate: NSObject {
         completionHandler(bodyStream)
     }
 
+    /// 处理从`SessionDelegate`转发的代理4
     @objc(URLSession:task:didCompleteWithError:)
     func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
         if let taskDidCompleteWithError = taskDidCompleteWithError {
@@ -258,6 +262,7 @@ class DataTaskDelegate: TaskDelegate, URLSessionDataDelegate {
         dataTaskDidBecomeDownloadTask?(session, dataTask, downloadTask)
     }
 
+    /// 处理从`SessionDelegate`转发的代理5
     func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
         if initialResponseTime == nil { initialResponseTime = CFAbsoluteTimeGetCurrent() }
 
@@ -283,6 +288,7 @@ class DataTaskDelegate: TaskDelegate, URLSessionDataDelegate {
         }
     }
 
+    /// 处理从`SessionDelegate`转发的代理6
     func urlSession(
         _ session: URLSession,
         dataTask: URLSessionDataTask,
@@ -340,6 +346,7 @@ class DownloadTaskDelegate: TaskDelegate, URLSessionDownloadDelegate {
     var downloadTaskDidWriteData: ((URLSession, URLSessionDownloadTask, Int64, Int64, Int64) -> Void)?
     var downloadTaskDidResumeAtOffset: ((URLSession, URLSessionDownloadTask, Int64, Int64) -> Void)?
 
+    /// 处理从`SessionDelegate`转发的代理7
     func urlSession(
         _ session: URLSession,
         downloadTask: URLSessionDownloadTask,
@@ -374,6 +381,7 @@ class DownloadTaskDelegate: TaskDelegate, URLSessionDownloadDelegate {
         }
     }
 
+    /// 处理从`SessionDelegate`转发的代理8
     func urlSession(
         _ session: URLSession,
         downloadTask: URLSessionDownloadTask,
@@ -401,6 +409,7 @@ class DownloadTaskDelegate: TaskDelegate, URLSessionDownloadDelegate {
         }
     }
 
+    /// 处理从`SessionDelegate`转发的代理9
     func urlSession(
         _ session: URLSession,
         downloadTask: URLSessionDownloadTask,
@@ -443,6 +452,7 @@ class UploadTaskDelegate: DataTaskDelegate {
 
     var taskDidSendBodyData: ((URLSession, URLSessionTask, Int64, Int64, Int64) -> Void)?
 
+    /// 处理从`SessionDelegate`转发的代理3
     func URLSession(
         _ session: URLSession,
         task: URLSessionTask,

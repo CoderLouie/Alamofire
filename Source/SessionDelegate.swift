@@ -26,7 +26,8 @@ import Foundation
 
 /// Responsible for handling all delegate callbacks for the underlying session.
 open class SessionDelegate: NSObject {
-
+    
+    
     // MARK: URLSessionDelegate Overrides
 
     /// Overrides default behavior for URLSessionDelegate method `urlSession(_:didBecomeInvalidWithError:)`.
@@ -183,6 +184,7 @@ open class SessionDelegate: NSObject {
     /// Initializes the `SessionDelegate` instance.
     ///
     /// - returns: The new `SessionDelegate` instance.
+    //FIXME: 为什么重写`init`方法
     public override init() {
         super.init()
     }
@@ -353,6 +355,7 @@ extension SessionDelegate: URLSessionTaskDelegate {
             let result = taskDidReceiveChallenge(session, task, challenge)
             completionHandler(result.0, result.1)
         } else if let delegate = self[task]?.delegate {
+            /// 转发代理1到`TaskDelegate`
             delegate.urlSession(
                 session,
                 task: task,
@@ -382,6 +385,7 @@ extension SessionDelegate: URLSessionTaskDelegate {
         if let taskNeedNewBodyStream = taskNeedNewBodyStream {
             completionHandler(taskNeedNewBodyStream(session, task))
         } else if let delegate = self[task]?.delegate {
+            /// 转发代理2到`TaskDelegate`
             delegate.urlSession(session, task: task, needNewBodyStream: completionHandler)
         }
     }
@@ -403,6 +407,7 @@ extension SessionDelegate: URLSessionTaskDelegate {
         if let taskDidSendBodyData = taskDidSendBodyData {
             taskDidSendBodyData(session, task, bytesSent, totalBytesSent, totalBytesExpectedToSend)
         } else if let delegate = self[task]?.delegate as? UploadTaskDelegate {
+            /// 转发代理3到`TaskDelegate`
             delegate.URLSession(
                 session,
                 task: task,
@@ -440,6 +445,7 @@ extension SessionDelegate: URLSessionTaskDelegate {
 
             strongSelf.taskDidComplete?(session, task, error)
 
+            /// 转发代理4到`TaskDelegate`
             strongSelf[task]?.delegate.urlSession(session, task: task, didCompleteWithError: error)
 
             var userInfo: [String: Any] = [Notification.Key.Task: task]
@@ -454,6 +460,7 @@ extension SessionDelegate: URLSessionTaskDelegate {
                 userInfo: userInfo
             )
 
+            /// 清除此task
             strongSelf[task] = nil
         }
 
@@ -481,9 +488,11 @@ extension SessionDelegate: URLSessionTaskDelegate {
                 DispatchQueue.utility.after(timeDelay) { [weak self] in
                     guard let strongSelf = self else { return }
 
+                    /// `retry`方法中有清除此次请求操作
                     let retrySucceeded = strongSelf.sessionManager?.retry(request) ?? false
 
                     if retrySucceeded, let task = request.task {
+                        /// 重试成功，重新赋值
                         strongSelf[task] = request
                         return
                     } else {
@@ -541,6 +550,7 @@ extension SessionDelegate: URLSessionDataDelegate {
         if let dataTaskDidBecomeDownloadTask = dataTaskDidBecomeDownloadTask {
             dataTaskDidBecomeDownloadTask(session, dataTask, downloadTask)
         } else {
+            /// 为`downloadTask`创建`DownloadTaskDelegate`
             self[downloadTask]?.delegate = DownloadTaskDelegate(task: downloadTask)
         }
     }
@@ -554,6 +564,7 @@ extension SessionDelegate: URLSessionDataDelegate {
         if let dataTaskDidReceiveData = dataTaskDidReceiveData {
             dataTaskDidReceiveData(session, dataTask, data)
         } else if let delegate = self[dataTask]?.delegate as? DataTaskDelegate {
+            /// 转发代理5到`TaskDelegate`
             delegate.urlSession(session, dataTask: dataTask, didReceive: data)
         }
     }
@@ -583,6 +594,7 @@ extension SessionDelegate: URLSessionDataDelegate {
         if let dataTaskWillCacheResponse = dataTaskWillCacheResponse {
             completionHandler(dataTaskWillCacheResponse(session, dataTask, proposedResponse))
         } else if let delegate = self[dataTask]?.delegate as? DataTaskDelegate {
+            /// 转发代理6到`TaskDelegate`
             delegate.urlSession(
                 session,
                 dataTask: dataTask,
@@ -613,6 +625,7 @@ extension SessionDelegate: URLSessionDownloadDelegate {
         if let downloadTaskDidFinishDownloadingToURL = downloadTaskDidFinishDownloadingToURL {
             downloadTaskDidFinishDownloadingToURL(session, downloadTask, location)
         } else if let delegate = self[downloadTask]?.delegate as? DownloadTaskDelegate {
+            /// 转发代理7到`TaskDelegate`
             delegate.urlSession(session, downloadTask: downloadTask, didFinishDownloadingTo: location)
         }
     }
@@ -637,6 +650,7 @@ extension SessionDelegate: URLSessionDownloadDelegate {
         if let downloadTaskDidWriteData = downloadTaskDidWriteData {
             downloadTaskDidWriteData(session, downloadTask, bytesWritten, totalBytesWritten, totalBytesExpectedToWrite)
         } else if let delegate = self[downloadTask]?.delegate as? DownloadTaskDelegate {
+            /// 转发代理8到`TaskDelegate`
             delegate.urlSession(
                 session,
                 downloadTask: downloadTask,
@@ -666,6 +680,7 @@ extension SessionDelegate: URLSessionDownloadDelegate {
         if let downloadTaskDidResumeAtOffset = downloadTaskDidResumeAtOffset {
             downloadTaskDidResumeAtOffset(session, downloadTask, fileOffset, expectedTotalBytes)
         } else if let delegate = self[downloadTask]?.delegate as? DownloadTaskDelegate {
+            /// 转发代理9到`TaskDelegate`
             delegate.urlSession(
                 session,
                 downloadTask: downloadTask,
