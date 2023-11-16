@@ -25,107 +25,52 @@
 import Alamofire
 import UIKit
 
-
-
-
-
 class MasterViewController: UITableViewController {
+    // MARK: - Properties
 
-    @IBOutlet weak var titleImageView: UIImageView!
+    @IBOutlet var titleImageView: UIImageView!
 
-    var detailViewController: DetailViewController? = nil
-    var objects = NSMutableArray()
+    var detailViewController: DetailViewController?
 
-    var queue: OperationQueue!
-    
+    private var reachability: NetworkReachabilityManager!
+
     // MARK: - View Lifecycle
 
     override func awakeFromNib() {
         super.awakeFromNib()
 
         navigationItem.titleView = titleImageView
-        
-        queue = {
-            let operationQueue = OperationQueue()
-            
-            operationQueue.maxConcurrentOperationCount = 1
-            operationQueue.isSuspended = true
-            operationQueue.qualityOfService = .utility
-            
-            return operationQueue
-        }()
+        clearsSelectionOnViewWillAppear = true
+
+        reachability = NetworkReachabilityManager.default
+        monitorReachability()
     }
 
-    @objc func execute() {
-        queue.isSuspended = false
-    }
-    
-    override func viewDidLoad() {
-        super.viewDidLoad()
-
-        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Execute", style: .plain, target: self, action: #selector(execute))
-        
-        queue.addOperation {
-            print("viewDidLoad")
-        }
-
-        
-        if let split = splitViewController {
-            let controllers = split.viewControllers
-
-            if
-                let navigationController = controllers.last as? UINavigationController,
-                let topViewController = navigationController.topViewController as? DetailViewController
-            {
-                detailViewController = topViewController
-            }
-        }
-    }
-
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        
-        queue.addOperation {
-            print("viewWillAppear")
-        }
-    }
-    
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-        
-        queue.addOperation {
-            print("viewDidAppear")
-        }
-    }
-    
     // MARK: - UIStoryboardSegue
 
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if
             let navigationController = segue.destination as? UINavigationController,
-            let detailViewController = navigationController.topViewController as? DetailViewController
-        {
+            let detailViewController = navigationController.topViewController as? DetailViewController {
             func requestForSegue(_ segue: UIStoryboardSegue) -> Request? {
                 switch segue.identifier! {
                 case "GET":
                     detailViewController.segueIdentifier = "GET"
-                    return Alamofire.request("https://httpbin.org/get")
+                    return AF.request("https://httpbin.org/get")
                 case "POST":
                     detailViewController.segueIdentifier = "POST"
-                    return Alamofire.request("https://httpbin.org/post", method: .post)
+                    return AF.request("https://httpbin.org/post", method: .post)
                 case "PUT":
                     detailViewController.segueIdentifier = "PUT"
-                    return Alamofire.request("https://httpbin.org/put", method: .put)
+                    return AF.request("https://httpbin.org/put", method: .put)
                 case "DELETE":
                     detailViewController.segueIdentifier = "DELETE"
-                    return Alamofire.request("https://httpbin.org/delete", method: .delete)
+                    return AF.request("https://httpbin.org/delete", method: .delete)
                 case "DOWNLOAD":
                     detailViewController.segueIdentifier = "DOWNLOAD"
-                    let destination = DownloadRequest.suggestedDownloadDestination(
-                        for: .cachesDirectory,
-                        in: .userDomainMask
-                    )
-                    return Alamofire.download("https://httpbin.org/stream/1", to: destination)
+                    let destination = DownloadRequest.suggestedDownloadDestination(for: .cachesDirectory,
+                                                                                   in: .userDomainMask)
+                    return AF.download("https://httpbin.org/stream/1", to: destination)
                 default:
                     return nil
                 }
@@ -136,5 +81,21 @@ class MasterViewController: UITableViewController {
             }
         }
     }
-}
 
+    // MARK: - UITableViewDelegate
+
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        if indexPath.section == 3 && indexPath.row == 0 {
+            print("Reachability Status: \(reachability.status)")
+            tableView.deselectRow(at: indexPath, animated: true)
+        }
+    }
+
+    // MARK: - Private - Reachability
+
+    private func monitorReachability() {
+        reachability.startListening { status in
+            print("Reachability Status Changed: \(status)")
+        }
+    }
+}

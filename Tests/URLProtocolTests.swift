@@ -27,27 +27,26 @@ import Foundation
 import XCTest
 
 class ProxyURLProtocol: URLProtocol {
-
     // MARK: Properties
 
-    struct PropertyKeys {
+    enum PropertyKeys {
         static let handledByForwarderURLProtocol = "HandledByProxyURLProtocol"
     }
 
     lazy var session: URLSession = {
         let configuration: URLSessionConfiguration = {
             let configuration = URLSessionConfiguration.ephemeral
-            configuration.httpAdditionalHeaders = SessionManager.defaultHTTPHeaders
+            configuration.headers = HTTPHeaders.default
 
             return configuration
         }()
 
-        let session = Foundation.URLSession(configuration: configuration, delegate: self, delegateQueue: nil)
+        let session = URLSession(configuration: configuration, delegate: self, delegateQueue: nil)
 
         return session
     }()
 
-    var activeTask: URLSessionTask?
+    weak var activeTask: URLSessionTask?
 
     // MARK: Class Request Methods
 
@@ -72,13 +71,13 @@ class ProxyURLProtocol: URLProtocol {
     }
 
     override class func requestIsCacheEquivalent(_ a: URLRequest, to b: URLRequest) -> Bool {
-        return false
+        false
     }
 
     // MARK: Loading Methods
 
     override func startLoading() {
-        // rdar://26849668 - URLProtocol had some API's that didnt make the value type conversion
+        // rdar://26849668 - URLProtocol had some API's that didn't make the value type conversion
         let urlRequest = (request.urlRequest! as NSURLRequest).mutableCopy() as! NSMutableURLRequest
         URLProtocol.setProperty(true, forKey: PropertyKeys.handledByForwarderURLProtocol, in: urlRequest)
         activeTask = session.dataTask(with: urlRequest as URLRequest)
@@ -93,7 +92,6 @@ class ProxyURLProtocol: URLProtocol {
 // MARK: -
 
 extension ProxyURLProtocol: URLSessionDataDelegate {
-
     // MARK: NSURLSessionDelegate
 
     func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
@@ -112,7 +110,7 @@ extension ProxyURLProtocol: URLSessionDataDelegate {
 // MARK: -
 
 class URLProtocolTestCase: BaseTestCase {
-    var manager: SessionManager!
+    var manager: Session!
 
     // MARK: Setup and Teardown
 
@@ -123,12 +121,12 @@ class URLProtocolTestCase: BaseTestCase {
             let configuration: URLSessionConfiguration = {
                 let configuration = URLSessionConfiguration.default
                 configuration.protocolClasses = [ProxyURLProtocol.self]
-                configuration.httpAdditionalHeaders = ["Session-Configuration-Header": "foo"]
+                configuration.headers["Session-Configuration-Header"] = "foo"
 
                 return configuration
             }()
 
-            return SessionManager(configuration: configuration)
+            return Session(configuration: configuration)
         }()
     }
 
@@ -136,43 +134,27 @@ class URLProtocolTestCase: BaseTestCase {
 
     func testThatURLProtocolReceivesRequestHeadersAndSessionConfigurationHeaders() {
         // Given
-        let urlString = "https://httpbin.org/response-headers"
-        let url = URL(string: urlString)!
+        let endpoint = Endpoint.responseHeaders.modifying(\.headers, to: ["Request-Header": "foobar"])
 
-        var urlRequest = URLRequest(url: url)
-        urlRequest.httpMethod = HTTPMethod.get.rawValue
-        urlRequest.setValue("foobar", forHTTPHeaderField: "Request-Header")
+        let expectation = expectation(description: "GET request should succeed")
 
-        let expectation = self.expectation(description: "GET request should succeed")
-
-        var response: DefaultDataResponse?
+        var response: DataResponse<Data?, AFError>?
 
         // When
-        manager.request(urlRequest)
+        manager.request(endpoint)
             .response { resp in
                 response = resp
                 expectation.fulfill()
             }
 
-        waitForExpectations(timeout: timeout, handler: nil)
+        waitForExpectations(timeout: timeout)
 
         // Then
         XCTAssertNotNil(response?.request)
         XCTAssertNotNil(response?.response)
         XCTAssertNotNil(response?.data)
         XCTAssertNil(response?.error)
-
-        if let headers = response?.response?.allHeaderFields as? [String: String] {
-            XCTAssertEqual(headers["Request-Header"], "foobar")
-
-            // Configuration headers are only passed in on iOS 9.0+
-            if #available(iOS 9.0, *) {
-                XCTAssertEqual(headers["Session-Configuration-Header"], "foo")
-            } else {
-                XCTAssertNil(headers["Session-Configuration-Header"])
-            }
-        } else {
-            XCTFail("headers should not be nil")
-        }
+        XCTAssertEqual(response?.response?.headers["Request-Header"], "foobar")
+        XCTAssertEqual(response?.response?.headers["Session-Configuration-Header"], "foo")
     }
 }
