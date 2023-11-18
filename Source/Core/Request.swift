@@ -1802,7 +1802,7 @@ public class DownloadRequest: Request {
     ///   - session: `URLSession` used to create the `URLSessionTask`.
     ///
     /// - Returns:   The `URLSessionTask` created.
-    public func task(forResumeData data: Data, using session: URLSession) -> URLSessionTask {
+    func task(forResumeData data: Data, using session: URLSession) -> URLSessionTask {
         session.downloadTask(withResumeData: data)
     }
 

@@ -976,19 +976,6 @@
 			path = Resources/Images;
 			sourceTree = "<group>";
 		};
-		4C4366991D7BB92700C38AAD /* Extensions */ = {
-			isa = PBXGroup;
-			children = (
-				4C43669A1D7BB93D00C38AAD /* DispatchQueue+Alamofire.swift */,
-				319917B8209CE53A00103A19 /* OperationQueue+Alamofire.swift */,
-				4196936122FA1E05001EA5D5 /* Result+Alamofire.swift */,
-				315A4C55241EF28B00D57C7A /* StringEncoding+Alamofire.swift */,
-				4C0CB640220CA89400604EDC /* URLRequest+Alamofire.swift */,
-				31F5085C20B50DC400FE2A0C /* URLSessionConfiguration+Alamofire.swift */,
-			);
-			name = Extensions;
-			sourceTree = "<group>";
-		};
 		4C7C8D201B9D0D7300948136 /* Extensions */ = {
 			isa = PBXGroup;
 			children = (
@@ -1010,50 +997,6 @@
 				31F1AA4123F75AEE00C2BB80 /* Alamofire 5.0 Migration Guide.md */,
 			);
 			name = "Migration Guides";
-			sourceTree = "<group>";
-		};
-		4CDE2C481AF8A14A00BABAE5 /* Core */ = {
-			isa = PBXGroup;
-			children = (
-				4C1DC8531B68908E00476DE3 /* AFError.swift */,
-				319917A9209CDCB000103A19 /* HTTPHeaders.swift */,
-				31727417218BAEC90039FFCC /* HTTPMethod.swift */,
-				4CB928281C66BFBC00CE5F08 /* Notifications.swift */,
-				3172741C218BB1790039FFCC /* ParameterEncoder.swift */,
-				4CE2724E1AF88FB500F1D59A /* ParameterEncoding.swift */,
-				3191B5741F5F53A6003960A8 /* Protected.swift */,
-				31991790209CDA7F00103A19 /* Request.swift */,
-				319917A4209CDAC400103A19 /* RequestTaskMap.swift */,
-				31991791209CDA7F00103A19 /* Response.swift */,
-				31991792209CDA7F00103A19 /* Session.swift */,
-				31991793209CDA7F00103A19 /* SessionDelegate.swift */,
-				31D83FCD20D5C29300D93E47 /* URLConvertible+URLRequestConvertible.swift */,
-			);
-			name = Core;
-			sourceTree = "<group>";
-		};
-		4CDE2C491AF8A14E00BABAE5 /* Features */ = {
-			isa = PBXGroup;
-			children = (
-				31DADDFA224811ED0051390F /* AlamofireExtended.swift */,
-				4C67D1352454B12A00CBA725 /* AuthenticationInterceptor.swift */,
-				4C4466EA21F8F5D800AC9703 /* CachedResponseHandler.swift */,
-				318DD40E2439780500963291 /* Combine.swift */,
-				31B3DE3A25C11CEA00760641 /* Concurrency.swift */,
-				3111CE8720A77843008315E2 /* EventMonitor.swift */,
-				4C23EB421B327C5B0090E0BC /* MultipartFormData.swift */,
-				311B198F20B0D3B40036823B /* MultipartUpload.swift */,
-				4C3D00531C66A63000D1F709 /* NetworkReachabilityManager.swift */,
-				4C0CB645220CA8A400604EDC /* RedirectHandler.swift */,
-				3165407229AEBC0400C9BE08 /* RequestCompression.swift */,
-				4C256A0521EEB69000AD5D87 /* RequestInterceptor.swift */,
-				4CDE2C451AF89FF300BABAE5 /* ResponseSerialization.swift */,
-				4C256A1921F1449C00AD5D87 /* RetryPolicy.swift */,
-				4C811F8C1B51856D00E0F59A /* ServerTrustEvaluation.swift */,
-				31FB2F8622C828D8007FD6D5 /* URLEncodedFormEncoder.swift */,
-				4CDE2C421AF89F0900BABAE5 /* Validation.swift */,
-			);
-			name = Features;
 			sourceTree = "<group>";
 		};
 		4CE292301EF4A386008DA555 /* Documentation */ = {
@@ -1110,6 +1053,71 @@
 			path = String;
 			sourceTree = "<group>";
 		};
+		B6C1CCD12B08AA2300FDED45 /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				4C1DC8531B68908E00476DE3 /* AFError.swift */,
+				319917A9209CDCB000103A19 /* HTTPHeaders.swift */,
+				31727417218BAEC90039FFCC /* HTTPMethod.swift */,
+				4CB928281C66BFBC00CE5F08 /* Notifications.swift */,
+				3172741C218BB1790039FFCC /* ParameterEncoder.swift */,
+				4CE2724E1AF88FB500F1D59A /* ParameterEncoding.swift */,
+				3191B5741F5F53A6003960A8 /* Protected.swift */,
+				31991790209CDA7F00103A19 /* Request.swift */,
+				319917A4209CDAC400103A19 /* RequestTaskMap.swift */,
+				31991791209CDA7F00103A19 /* Response.swift */,
+				31991792209CDA7F00103A19 /* Session.swift */,
+				31991793209CDA7F00103A19 /* SessionDelegate.swift */,
+				31D83FCD20D5C29300D93E47 /* URLConvertible+URLRequestConvertible.swift */,
+			);
+			path = Core;
+			sourceTree = "<group>";
+		};
+		B6C1CCD22B08AA4700FDED45 /* Extensions */ = {
+			isa = PBXGroup;
+			children = (
+				4C43669A1D7BB93D00C38AAD /* DispatchQueue+Alamofire.swift */,
+				319917B8209CE53A00103A19 /* OperationQueue+Alamofire.swift */,
+				4196936122FA1E05001EA5D5 /* Result+Alamofire.swift */,
+				315A4C55241EF28B00D57C7A /* StringEncoding+Alamofire.swift */,
+				4C0CB640220CA89400604EDC /* URLRequest+Alamofire.swift */,
+				31F5085C20B50DC400FE2A0C /* URLSessionConfiguration+Alamofire.swift */,
+			);
+			path = Extensions;
+			sourceTree = "<group>";
+		};
+		B6C1CCD32B08AA6400FDED45 /* Features */ = {
+			isa = PBXGroup;
+			children = (
+				31DADDFA224811ED0051390F /* AlamofireExtended.swift */,
+				4C67D1352454B12A00CBA725 /* AuthenticationInterceptor.swift */,
+				4C4466EA21F8F5D800AC9703 /* CachedResponseHandler.swift */,
+				318DD40E2439780500963291 /* Combine.swift */,
+				31B3DE3A25C11CEA00760641 /* Concurrency.swift */,
+				3111CE8720A77843008315E2 /* EventMonitor.swift */,
+				4C23EB421B327C5B0090E0BC /* MultipartFormData.swift */,
+				311B198F20B0D3B40036823B /* MultipartUpload.swift */,
+				4C3D00531C66A63000D1F709 /* NetworkReachabilityManager.swift */,
+				4C0CB645220CA8A400604EDC /* RedirectHandler.swift */,
+				3165407229AEBC0400C9BE08 /* RequestCompression.swift */,
+				4C256A0521EEB69000AD5D87 /* RequestInterceptor.swift */,
+				4CDE2C451AF89FF300BABAE5 /* ResponseSerialization.swift */,
+				4C256A1921F1449C00AD5D87 /* RetryPolicy.swift */,
+				4C811F8C1B51856D00E0F59A /* ServerTrustEvaluation.swift */,
+				31FB2F8622C828D8007FD6D5 /* URLEncodedFormEncoder.swift */,
+				4CDE2C421AF89F0900BABAE5 /* Validation.swift */,
+			);
+			path = Features;
+			sourceTree = "<group>";
+		};
+		B6C1CCD42B08ACC200FDED45 /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				F8111E3719A95C8B0040E7D1 /* Info.plist */,
+			);
+			path = "Supporting Files";
+			sourceTree = "<group>";
+		};
 		F8111E2919A95C8B0040E7D1 = {
 			isa = PBXGroup;
 			children = (
@@ -1145,20 +1153,12 @@
 			isa = PBXGroup;
 			children = (
 				F897FF4019AA800700AB5182 /* Alamofire.swift */,
-				4CDE2C481AF8A14A00BABAE5 /* Core */,
-				4C4366991D7BB92700C38AAD /* Extensions */,
-				4CDE2C491AF8A14E00BABAE5 /* Features */,
-				F8111E3619A95C8B0040E7D1 /* Supporting Files */,
+				B6C1CCD12B08AA2300FDED45 /* Core */,
+				B6C1CCD22B08AA4700FDED45 /* Extensions */,
+				B6C1CCD32B08AA6400FDED45 /* Features */,
+				B6C1CCD42B08ACC200FDED45 /* Supporting Files */,
 			);
 			path = Source;
-			sourceTree = "<group>";
-		};
-		F8111E3619A95C8B0040E7D1 /* Supporting Files */ = {
-			isa = PBXGroup;
-			children = (
-				F8111E3719A95C8B0040E7D1 /* Info.plist */,
-			);
-			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
 		F8111E3F19A95C8B0040E7D1 /* Tests */ = {
