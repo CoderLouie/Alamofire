@@ -55,8 +55,7 @@ open class SessionDelegate: NSObject {
 }
 
 /// Type which provides various `Session` state values.
-protocol SessionStateProvider: AnyObject {
-    var serverTrustManager: ServerTrustManager? { get }
+protocol SessionStateProvider: AnyObject { 
     var redirectHandler: RedirectHandler? { get }
     var cachedResponseHandler: CachedResponseHandler? { get }
 
@@ -95,8 +94,6 @@ extension SessionDelegate: URLSessionTaskDelegate {
              NSURLAuthenticationMethodNegotiate:
             evaluation = attemptCredentialAuthentication(for: challenge, belongingTo: task)
         #if canImport(Security)
-        case NSURLAuthenticationMethodServerTrust:
-            evaluation = attemptServerTrustAuthentication(with: challenge)
         case NSURLAuthenticationMethodClientCertificate:
             evaluation = attemptCredentialAuthentication(for: challenge, belongingTo: task)
         #endif
@@ -110,35 +107,6 @@ extension SessionDelegate: URLSessionTaskDelegate {
 
         completionHandler(evaluation.disposition, evaluation.credential)
     }
-
-    #if canImport(Security)
-    /// Evaluates the server trust `URLAuthenticationChallenge` received.
-    ///
-    /// - Parameter challenge: The `URLAuthenticationChallenge`.
-    ///
-    /// - Returns:             The `ChallengeEvaluation`.
-    func attemptServerTrustAuthentication(with challenge: URLAuthenticationChallenge) -> ChallengeEvaluation {
-        let host = challenge.protectionSpace.host
-
-        guard challenge.protectionSpace.authenticationMethod == NSURLAuthenticationMethodServerTrust,
-              let trust = challenge.protectionSpace.serverTrust
-        else {
-            return (.performDefaultHandling, nil, nil)
-        }
-
-        do {
-            guard let evaluator = try stateProvider?.serverTrustManager?.serverTrustEvaluator(forHost: host) else {
-                return (.performDefaultHandling, nil, nil)
-            }
-
-            try evaluator.evaluate(trust, forHost: host)
-
-            return (.useCredential, URLCredential(trust: trust), nil)
-        } catch {
-            return (.cancelAuthenticationChallenge, nil, error.asAFError(or: .serverTrustEvaluationFailed(reason: .customEvaluationFailed(error: error))))
-        }
-    }
-    #endif
 
     /// Evaluates the credential-based authentication `URLAuthenticationChallenge` received for `task`.
     ///
@@ -276,37 +244,7 @@ extension SessionDelegate: URLSessionDataDelegate {
         }
     }
 }
-
-// MARK: URLSessionWebSocketDelegate
-
-#if canImport(Darwin) && !canImport(FoundationNetworking)
-
-@available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
-extension SessionDelegate: URLSessionWebSocketDelegate {
-    open func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask, didOpenWithProtocol protocol: String?) {
-        // TODO: Add event monitor method.
-//        NSLog("URLSession: \(session), webSocketTask: \(webSocketTask), didOpenWithProtocol: \(`protocol` ?? "None")")
-        guard let request = request(for: webSocketTask, as: WebSocketRequest.self) else {
-            return
-        }
-
-        request.didConnect(protocol: `protocol`)
-    }
-
-    open func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask, didCloseWith closeCode: URLSessionWebSocketTask.CloseCode, reason: Data?) {
-        // TODO: Add event monitor method.
-//        NSLog("URLSession: \(session), webSocketTask: \(webSocketTask), didCloseWithCode: \(closeCode.rawValue), reason: \(reason ?? Data())")
-        guard let request = request(for: webSocketTask, as: WebSocketRequest.self) else {
-            return
-        }
-
-        // On 2021 OSes and above, empty reason is returned as empty Data rather than nil, so make it nil always.
-        let reason = (reason?.isEmpty == true) ? nil : reason
-        request.didDisconnect(closeCode: closeCode, reason: reason)
-    }
-}
-
-#endif
+ 
 
 // MARK: URLSessionDownloadDelegate
 

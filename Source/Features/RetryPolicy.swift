@@ -330,6 +330,7 @@ open class RetryPolicy: RequestInterceptor {
             return true
         } else {
             let errorCode = (error as? URLError)?.code
+            // TODO: fix
             let afErrorCode = (error.asAFError?.underlyingError as? URLError)?.code
 
             guard let code = errorCode ?? afErrorCode else { return false }

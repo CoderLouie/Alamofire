@@ -55,16 +55,12 @@ open class Session {
     /// `RequestInterceptor` used for all `Request` created by the instance. `RequestInterceptor`s can also be set on a
     /// per-`Request` basis, in which case the `Request`'s interceptor takes precedence over this value.
     public let interceptor: RequestInterceptor?
-    /// `ServerTrustManager` instance used to evaluate all trust challenges and provide certificate and key pinning.
-    public let serverTrustManager: ServerTrustManager?
     /// `RedirectHandler` instance used to provide customization for request redirection.
     public let redirectHandler: RedirectHandler?
     /// `CachedResponseHandler` instance used to provide customization of cached response handling.
     public let cachedResponseHandler: CachedResponseHandler?
-    /// `CompositeEventMonitor` used to compose Alamofire's `defaultEventMonitors` and any passed `EventMonitor`s.
+    /// `CompositeEventMonitor` used to compose Alamofire's `AlamofireNotifications` and any passed `EventMonitor`s.
     public let eventMonitor: CompositeEventMonitor
-    /// `EventMonitor`s included in all instances. `[AlamofireNotifications()]` by default.
-    public let defaultEventMonitors: [EventMonitor] = [AlamofireNotifications()]
 
     /// Internal map between `Request`s and any `URLSessionTasks` that may be in flight for them.
     var requestTaskMap = RequestTaskMap()
@@ -97,8 +93,6 @@ open class Session {
     ///                               done after careful testing and profiling. `nil` by default.
     ///   - interceptor:              `RequestInterceptor` to be used for all `Request`s created by this instance. `nil`
     ///                               by default.
-    ///   - serverTrustManager:       `ServerTrustManager` to be used for all trust evaluations by this instance. `nil`
-    ///                               by default.
     ///   - redirectHandler:          `RedirectHandler` to be used by all `Request`s created by this instance. `nil` by
     ///                               default.
     ///   - cachedResponseHandler:    `CachedResponseHandler` to be used by all `Request`s created by this instance.
@@ -112,7 +106,6 @@ open class Session {
                 requestQueue: DispatchQueue? = nil,
                 serializationQueue: DispatchQueue? = nil,
                 interceptor: RequestInterceptor? = nil,
-                serverTrustManager: ServerTrustManager? = nil,
                 redirectHandler: RedirectHandler? = nil,
                 cachedResponseHandler: CachedResponseHandler? = nil,
                 eventMonitors: [EventMonitor] = []) {
@@ -128,10 +121,9 @@ open class Session {
         self.requestQueue = requestQueue ?? DispatchQueue(label: "\(rootQueue.label).requestQueue", target: rootQueue)
         self.serializationQueue = serializationQueue ?? DispatchQueue(label: "\(rootQueue.label).serializationQueue", target: rootQueue)
         self.interceptor = interceptor
-        self.serverTrustManager = serverTrustManager
         self.redirectHandler = redirectHandler
         self.cachedResponseHandler = cachedResponseHandler
-        eventMonitor = CompositeEventMonitor(monitors: defaultEventMonitors + eventMonitors)
+        eventMonitor = CompositeEventMonitor(monitors: [AlamofireNotifications()] + eventMonitors)
         delegate.eventMonitor = eventMonitor
         delegate.stateProvider = self
     }
@@ -162,8 +154,6 @@ open class Session {
     ///                               done after careful testing and profiling. `nil` by default.
     ///   - interceptor:              `RequestInterceptor` to be used for all `Request`s created by this instance. `nil`
     ///                               by default.
-    ///   - serverTrustManager:       `ServerTrustManager` to be used for all trust evaluations by this instance. `nil`
-    ///                               by default.
     ///   - redirectHandler:          `RedirectHandler` to be used by all `Request`s created by this instance. `nil` by
     ///                               default.
     ///   - cachedResponseHandler:    `CachedResponseHandler` to be used by all `Request`s created by this instance.
@@ -177,7 +167,6 @@ open class Session {
                             requestQueue: DispatchQueue? = nil,
                             serializationQueue: DispatchQueue? = nil,
                             interceptor: RequestInterceptor? = nil,
-                            serverTrustManager: ServerTrustManager? = nil,
                             redirectHandler: RedirectHandler? = nil,
                             cachedResponseHandler: CachedResponseHandler? = nil,
                             eventMonitors: [EventMonitor] = []) {
@@ -195,8 +184,7 @@ open class Session {
                   startRequestsImmediately: startRequestsImmediately,
                   requestQueue: requestQueue,
                   serializationQueue: serializationQueue,
-                  interceptor: interceptor,
-                  serverTrustManager: serverTrustManager,
+                  interceptor: interceptor, 
                   redirectHandler: redirectHandler,
                   cachedResponseHandler: cachedResponseHandler,
                   eventMonitors: eventMonitors)
@@ -294,54 +282,8 @@ open class Session {
 
         return request(convertible, interceptor: interceptor)
     }
-
-    struct RequestEncodableConvertible<Parameters: Encodable>: URLRequestConvertible {
-        let url: URLConvertible
-        let method: HTTPMethod
-        let parameters: Parameters?
-        let encoder: ParameterEncoder
-        let headers: HTTPHeaders?
-        let requestModifier: RequestModifier?
-
-        func asURLRequest() throws -> URLRequest {
-            var request = try URLRequest(url: url, method: method, headers: headers)
-            try requestModifier?(&request)
-
-            return try parameters.map { try encoder.encode($0, into: request) } ?? request
-        }
-    }
-
-    /// Creates a `DataRequest` from a `URLRequest` created using the passed components, `Encodable` parameters, and a
-    /// `RequestInterceptor`.
-    ///
-    /// - Parameters:
-    ///   - convertible:     `URLConvertible` value to be used as the `URLRequest`'s `URL`.
-    ///   - method:          `HTTPMethod` for the `URLRequest`. `.get` by default.
-    ///   - parameters:      `Encodable` value to be encoded into the `URLRequest`. `nil` by default.
-    ///   - encoder:         `ParameterEncoder` to be used to encode the `parameters` value into the `URLRequest`.
-    ///                      `URLEncodedFormParameterEncoder.default` by default.
-    ///   - headers:         `HTTPHeaders` value to be added to the `URLRequest`. `nil` by default.
-    ///   - interceptor:     `RequestInterceptor` value to be used by the returned `DataRequest`. `nil` by default.
-    ///   - requestModifier: `RequestModifier` which will be applied to the `URLRequest` created from
-    ///                      the provided parameters. `nil` by default.
-    ///
-    /// - Returns:           The created `DataRequest`.
-    open func request<Parameters: Encodable>(_ convertible: URLConvertible,
-                                             method: HTTPMethod = .get,
-                                             parameters: Parameters? = nil,
-                                             encoder: ParameterEncoder = URLEncodedFormParameterEncoder.default,
-                                             headers: HTTPHeaders? = nil,
-                                             interceptor: RequestInterceptor? = nil,
-                                             requestModifier: RequestModifier? = nil) -> DataRequest {
-        let convertible = RequestEncodableConvertible(url: convertible,
-                                                      method: method,
-                                                      parameters: parameters,
-                                                      encoder: encoder,
-                                                      headers: headers,
-                                                      requestModifier: requestModifier)
-
-        return request(convertible, interceptor: interceptor)
-    }
+ 
+ 
 
     /// Creates a `DataRequest` from a `URLRequestConvertible` value and a `RequestInterceptor`.
     ///
@@ -362,46 +304,7 @@ open class Session {
 
         return request
     }
-
-    // MARK: - DataStreamRequest
-
-    /// Creates a `DataStreamRequest` from the passed components, `Encodable` parameters, and `RequestInterceptor`.
-    ///
-    /// - Parameters:
-    ///   - convertible:                      `URLConvertible` value to be used as the `URLRequest`'s `URL`.
-    ///   - method:                           `HTTPMethod` for the `URLRequest`. `.get` by default.
-    ///   - parameters:                       `Encodable` value to be encoded into the `URLRequest`. `nil` by default.
-    ///   - encoder:                          `ParameterEncoder` to be used to encode the `parameters` value into the
-    ///                                       `URLRequest`.
-    ///                                       `URLEncodedFormParameterEncoder.default` by default.
-    ///   - headers:                          `HTTPHeaders` value to be added to the `URLRequest`. `nil` by default.
-    ///   - automaticallyCancelOnStreamError: `Bool` indicating whether the instance should be canceled when an `Error`
-    ///                                       is thrown while serializing stream `Data`. `false` by default.
-    ///   - interceptor:                      `RequestInterceptor` value to be used by the returned `DataRequest`. `nil`
-    ///                                       by default.
-    ///   - requestModifier:                  `RequestModifier` which will be applied to the `URLRequest` created from
-    ///                                       the provided parameters. `nil` by default.
-    ///
-    /// - Returns:       The created `DataStream` request.
-    open func streamRequest<Parameters: Encodable>(_ convertible: URLConvertible,
-                                                   method: HTTPMethod = .get,
-                                                   parameters: Parameters? = nil,
-                                                   encoder: ParameterEncoder = URLEncodedFormParameterEncoder.default,
-                                                   headers: HTTPHeaders? = nil,
-                                                   automaticallyCancelOnStreamError: Bool = false,
-                                                   interceptor: RequestInterceptor? = nil,
-                                                   requestModifier: RequestModifier? = nil) -> DataStreamRequest {
-        let convertible = RequestEncodableConvertible(url: convertible,
-                                                      method: method,
-                                                      parameters: parameters,
-                                                      encoder: encoder,
-                                                      headers: headers,
-                                                      requestModifier: requestModifier)
-
-        return streamRequest(convertible,
-                             automaticallyCancelOnStreamError: automaticallyCancelOnStreamError,
-                             interceptor: interceptor)
-    }
+ 
 
     /// Creates a `DataStreamRequest` from the passed components and `RequestInterceptor`.
     ///
@@ -423,12 +326,12 @@ open class Session {
                             automaticallyCancelOnStreamError: Bool = false,
                             interceptor: RequestInterceptor? = nil,
                             requestModifier: RequestModifier? = nil) -> DataStreamRequest {
-        let convertible = RequestEncodableConvertible(url: convertible,
-                                                      method: method,
-                                                      parameters: Empty?.none,
-                                                      encoder: URLEncodedFormParameterEncoder.default,
-                                                      headers: headers,
-                                                      requestModifier: requestModifier)
+        let convertible = RequestConvertible(url: convertible,
+                                             method: method,
+                                             parameters: nil,
+                                             encoding: JSONEncoding.default,
+                                             headers: headers,
+                                             requestModifier: requestModifier)
 
         return streamRequest(convertible,
                              automaticallyCancelOnStreamError: automaticallyCancelOnStreamError,
@@ -460,73 +363,7 @@ open class Session {
 
         return request
     }
-
-    #if canImport(Darwin) && !canImport(FoundationNetworking) // Only Apple platforms support URLSessionWebSocketTask.
-    @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
-    @_spi(WebSocket) open func webSocketRequest(
-        to url: URLConvertible,
-        configuration: WebSocketRequest.Configuration = .default,
-        headers: HTTPHeaders? = nil,
-        interceptor: RequestInterceptor? = nil,
-        requestModifier: RequestModifier? = nil
-    ) -> WebSocketRequest {
-        webSocketRequest(
-            to: url,
-            configuration: configuration,
-            parameters: Empty?.none,
-            encoder: URLEncodedFormParameterEncoder.default,
-            headers: headers,
-            interceptor: interceptor,
-            requestModifier: requestModifier
-        )
-    }
-
-    @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
-    @_spi(WebSocket) open func webSocketRequest<Parameters>(
-        to url: URLConvertible,
-        configuration: WebSocketRequest.Configuration = .default,
-        parameters: Parameters? = nil,
-        encoder: ParameterEncoder = URLEncodedFormParameterEncoder.default,
-        headers: HTTPHeaders? = nil,
-        interceptor: RequestInterceptor? = nil,
-        requestModifier: RequestModifier? = nil
-    ) -> WebSocketRequest where Parameters: Encodable {
-        let convertible = RequestEncodableConvertible(url: url,
-                                                      method: .get,
-                                                      parameters: parameters,
-                                                      encoder: encoder,
-                                                      headers: headers,
-                                                      requestModifier: requestModifier)
-        let request = WebSocketRequest(convertible: convertible,
-                                       configuration: configuration,
-                                       underlyingQueue: rootQueue,
-                                       serializationQueue: serializationQueue,
-                                       eventMonitor: eventMonitor,
-                                       interceptor: interceptor,
-                                       delegate: self)
-
-        perform(request)
-
-        return request
-    }
-
-    @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
-    @_spi(WebSocket) open func webSocketRequest(performing convertible: URLRequestConvertible,
-                                                configuration: WebSocketRequest.Configuration = .default,
-                                                interceptor: RequestInterceptor? = nil) -> WebSocketRequest {
-        let request = WebSocketRequest(convertible: convertible,
-                                       configuration: configuration,
-                                       underlyingQueue: rootQueue,
-                                       serializationQueue: serializationQueue,
-                                       eventMonitor: eventMonitor,
-                                       interceptor: interceptor,
-                                       delegate: self)
-
-        perform(request)
-
-        return request
-    }
-    #endif
+ 
 
     // MARK: - DownloadRequest
 
@@ -562,41 +399,6 @@ open class Session {
                                              encoding: encoding,
                                              headers: headers,
                                              requestModifier: requestModifier)
-
-        return download(convertible, interceptor: interceptor, to: destination)
-    }
-
-    /// Creates a `DownloadRequest` from a `URLRequest` created using the passed components, `Encodable` parameters, and
-    /// a `RequestInterceptor`.
-    ///
-    /// - Parameters:
-    ///   - convertible:     `URLConvertible` value to be used as the `URLRequest`'s `URL`.
-    ///   - method:          `HTTPMethod` for the `URLRequest`. `.get` by default.
-    ///   - parameters:      Value conforming to `Encodable` to be encoded into the `URLRequest`. `nil` by default.
-    ///   - encoder:         `ParameterEncoder` to be used to encode the `parameters` value into the `URLRequest`.
-    ///                      Defaults to `URLEncodedFormParameterEncoder.default`.
-    ///   - headers:         `HTTPHeaders` value to be added to the `URLRequest`. `nil` by default.
-    ///   - interceptor:     `RequestInterceptor` value to be used by the returned `DataRequest`. `nil` by default.
-    ///   - requestModifier: `RequestModifier` which will be applied to the `URLRequest` created from the provided
-    ///                      parameters. `nil` by default.
-    ///   - destination:     `DownloadRequest.Destination` closure used to determine how and where the downloaded file
-    ///                      should be moved. `nil` by default.
-    ///
-    /// - Returns:           The created `DownloadRequest`.
-    open func download<Parameters: Encodable>(_ convertible: URLConvertible,
-                                              method: HTTPMethod = .get,
-                                              parameters: Parameters? = nil,
-                                              encoder: ParameterEncoder = URLEncodedFormParameterEncoder.default,
-                                              headers: HTTPHeaders? = nil,
-                                              interceptor: RequestInterceptor? = nil,
-                                              requestModifier: RequestModifier? = nil,
-                                              to destination: DownloadRequest.Destination? = nil) -> DownloadRequest {
-        let convertible = RequestEncodableConvertible(url: convertible,
-                                                      method: method,
-                                                      parameters: parameters,
-                                                      encoder: encoder,
-                                                      headers: headers,
-                                                      requestModifier: requestModifier)
 
         return download(convertible, interceptor: interceptor, to: destination)
     }
@@ -1071,16 +873,7 @@ open class Session {
                 case let r as DownloadRequest: self.performDownloadRequest(r)
                 case let r as DataStreamRequest: self.performDataStreamRequest(r)
                 default:
-                    #if canImport(Darwin) && !canImport(FoundationNetworking)
-                    if #available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *),
-                       let request = request as? WebSocketRequest {
-                        self.performWebSocketRequest(request)
-                    } else {
-                        fatalError("Attempted to perform unsupported Request subclass: \(type(of: request))")
-                    }
-                    #else
                     fatalError("Attempted to perform unsupported Request subclass: \(type(of: request))")
-                    #endif
                 }
             }
         }
@@ -1096,16 +889,7 @@ open class Session {
         dispatchPrecondition(condition: .onQueue(requestQueue))
 
         performSetupOperations(for: request, convertible: request.convertible)
-    }
-
-    #if canImport(Darwin) && !canImport(FoundationNetworking)
-    @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
-    func performWebSocketRequest(_ request: WebSocketRequest) {
-        dispatchPrecondition(condition: .onQueue(requestQueue))
-
-        performSetupOperations(for: request, convertible: request.convertible)
-    }
-    #endif
+    } 
 
     func performUploadRequest(_ request: UploadRequest) {
         dispatchPrecondition(condition: .onQueue(requestQueue))

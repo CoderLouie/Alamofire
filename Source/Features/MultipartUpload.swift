@@ -26,7 +26,6 @@ import Foundation
 
 /// Internal type which encapsulates a `MultipartFormData` upload.
 final class MultipartUpload {
-    lazy var result = Result { try build() }
 
     private let multipartFormData: Protected<MultipartFormData>
 
@@ -84,6 +83,6 @@ extension MultipartUpload: UploadConvertible {
     }
 
     func createUploadable() throws -> UploadRequest.Uploadable {
-        try result.get()
+        try build()
     }
 }
