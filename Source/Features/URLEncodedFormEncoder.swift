@@ -1135,7 +1135,7 @@ extension CharacterSet {
     ///
     /// RFC 3986 states that the following characters are "reserved" characters.
     ///
-    /// - General Delimiters: ":", "#", "[", "]", "@", "?", "/"
+    /// - General Delimiters: ":", "#", "[", "]", "@"
     /// - Sub-Delimiters: "!", "$", "&", "'", "(", ")", "*", "+", ",", ";", "="
     ///
     /// In RFC 3986 - Section 3.4, it states that the "?" and "/" characters should not be escaped to allow
