@@ -356,7 +356,6 @@ extension ResponseSerializer where Self == StringResponseSerializer {
 ///
 /// - Note: This serializer is deprecated and should not be used. Instead, create concrete types conforming to
 ///         `Decodable` and use a `DecodableResponseSerializer`.
-@available(*, deprecated, message: "JSONResponseSerializer deprecated and will be removed in Alamofire 6. Use DecodableResponseSerializer instead.")
 public final class JSONResponseSerializer: ResponseSerializer {
     public let dataPreprocessor: DataPreprocessor
     public let emptyResponseCodes: Set<Int>

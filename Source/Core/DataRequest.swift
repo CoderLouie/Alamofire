@@ -400,8 +400,7 @@ public class DataRequest: Request {
     ///                          by default.
     ///   - completionHandler:   A closure to be executed once the request has finished.
     ///
-    /// - Returns:               The request.
-    @available(*, deprecated, message: "responseJSON deprecated and will be removed in Alamofire 6. Use responseDecodable instead.")
+    /// - Returns:               The request. 
     @discardableResult
     public func responseJSON(queue: DispatchQueue = .main,
                              dataPreprocessor: DataPreprocessor = JSONResponseSerializer.defaultDataPreprocessor,

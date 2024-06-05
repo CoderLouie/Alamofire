@@ -59,3 +59,110 @@ extension AlamofireExtended {
         set {}
     }
 }
+
+
+
+// MARK: - Extensions
+import Foundation
+
+extension DispatchQueue {
+    /// Execute the provided closure after a `TimeInterval`.
+    ///
+    /// - Parameters:
+    ///   - delay:   `TimeInterval` to delay execution.
+    ///   - closure: Closure to execute.
+    func after(_ delay: TimeInterval, execute closure: @escaping () -> Void) {
+        asyncAfter(deadline: .now() + delay, execute: closure)
+    }
+}
+
+
+extension OperationQueue {
+    /// Creates an instance using the provided parameters.
+    ///
+    /// - Parameters:
+    ///   - qualityOfService:            `QualityOfService` to be applied to the queue. `.default` by default.
+    ///   - maxConcurrentOperationCount: Maximum concurrent operations.
+    ///                                  `OperationQueue.defaultMaxConcurrentOperationCount` by default.
+    ///   - underlyingQueue: Underlying  `DispatchQueue`. `nil` by default.
+    ///   - name:                        Name for the queue. `nil` by default.
+    ///   - startSuspended:              Whether the queue starts suspended. `false` by default.
+    convenience init(qualityOfService: QualityOfService = .default,
+                     maxConcurrentOperationCount: Int = OperationQueue.defaultMaxConcurrentOperationCount,
+                     underlyingQueue: DispatchQueue? = nil,
+                     name: String? = nil,
+                     startSuspended: Bool = false) {
+        self.init()
+        self.qualityOfService = qualityOfService
+        self.maxConcurrentOperationCount = maxConcurrentOperationCount
+        self.underlyingQueue = underlyingQueue
+        self.name = name
+        isSuspended = startSuspended
+    }
+}
+
+extension String.Encoding {
+    /// Creates an encoding from the IANA charset name.
+    ///
+    /// - Notes: These mappings match those [provided by CoreFoundation](https://opensource.apple.com/source/CF/CF-476.18/CFStringUtilities.c.auto.html)
+    ///
+    /// - Parameter name: IANA charset name.
+    init?(ianaCharsetName name: String) {
+        switch name.lowercased() {
+        case "utf-8":
+            self = .utf8
+        case "iso-8859-1":
+            self = .isoLatin1
+        case "unicode-1-1", "iso-10646-ucs-2", "utf-16":
+            self = .utf16
+        case "utf-16be":
+            self = .utf16BigEndian
+        case "utf-16le":
+            self = .utf16LittleEndian
+        case "utf-32":
+            self = .utf32
+        case "utf-32be":
+            self = .utf32BigEndian
+        case "utf-32le":
+            self = .utf32LittleEndian
+        default:
+            return nil
+        }
+    }
+}
+
+extension URLRequest {
+    /// Returns the `httpMethod` as Alamofire's `HTTPMethod` type.
+    public var method: HTTPMethod? {
+        get { httpMethod.map(HTTPMethod.init) }
+        set { httpMethod = newValue?.rawValue }
+    }
+
+    public func validate() throws {
+        if method == .get, let bodyData = httpBody {
+            throw AFError.urlRequestValidationFailed(reason: .bodyDataInGETRequest(bodyData))
+        }
+    }
+}
+
+
+extension URLSessionConfiguration: AlamofireExtended {}
+extension AlamofireExtension where ExtendedType: URLSessionConfiguration {
+    /// Alamofire's default configuration. Same as `URLSessionConfiguration.default` but adds Alamofire default
+    /// `Accept-Language`, `Accept-Encoding`, and `User-Agent` headers.
+    public static var `default`: URLSessionConfiguration {
+        let configuration = URLSessionConfiguration.default
+        configuration.headers = .default
+
+        return configuration
+    }
+
+    /// `.ephemeral` configuration with Alamofire's default `Accept-Language`, `Accept-Encoding`, and `User-Agent`
+    /// headers.
+    public static var ephemeral: URLSessionConfiguration {
+        let configuration = URLSessionConfiguration.ephemeral
+        configuration.headers = .default
+
+        return configuration
+    }
+}
